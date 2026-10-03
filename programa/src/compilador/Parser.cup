@@ -1,0 +1,109 @@
+package compilador;
+
+import java_cup.runtime.*;
+
+parser code {:
+    public void syntax_error(Symbol s) {
+        System.err.println("Error Sintactico: Simbolo inesperado '" + s.value + 
+                           "' en la linea " + s.left + ", columna " + s.right);
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        System.err.println("Error Fatal: No se pudo recuperar del error sintactico " +
+                           "cerca de la linea " + s.left + ", columna " + s.right);
+    }
+:}
+
+/* Declaracion de Terminales */
+
+terminal VOID, MAIN, INT, FLOAT, BOOLEAN, CHAR, STRING, VAL;
+terminal IF, ELIF, ELSE, WHILE, FOR, RETURN, BREAK, READ, WRITE;
+terminal TRUE, FALSE, MOD, POT;
+
+terminal LPAREN, RPAREN, LBLOCK, RBLOCK, LBRACKET, RBRACKET;
+terminal COLON, R_ARRAY_IDX, SEMICOLON, COMMA;
+terminal ASSIGN, END_STMT;
+
+terminal PLUS, MINUS, MULT, DIV, INT_DIV, INC, DEC;
+terminal LT, LTE, GT, GTE, EQ, NEQ;
+terminal AND, OR, NOT;
+
+terminal String ID, STRING_LITERAL, CHAR_LITERAL;
+terminal Integer NUM_INT;
+terminal Float NUM_FLOAT;
+
+/* Declaracion de No Terminales */
+
+non terminal programa, elementos_globales, elemento_global, funcion_main;
+non terminal bloque_codigo, lista_sentencias, sentencia;
+non terminal sentencia_var, tipo_dato, tipo_arreglo;
+non terminal expresion;
+
+/* Precedencia y Asociatividad */
+
+precedence left OR;
+precedence left AND;
+precedence left EQ, NEQ;
+precedence left LT, LTE, GT, GTE;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV, INT_DIV, MOD;
+precedence right POT;
+precedence right NOT, INC, DEC; 
+
+/* Gramatica */
+start with programa;
+
+programa ::= elementos_globales funcion_main
+           | funcion_main
+           ;
+
+elementos_globales ::= elemento_global elementos_globales
+                     | elemento_global
+                     ;
+
+elemento_global ::= sentencia_var
+                  | error END_STMT
+                  ;
+
+funcion_main ::= VOID MAIN LPAREN RPAREN bloque_codigo
+               ;
+
+
+tipo_dato ::= INT 
+            | FLOAT 
+            | BOOLEAN 
+            | CHAR 
+            | STRING 
+            | tipo_arreglo 
+            ;
+
+tipo_arreglo ::= FLOAT LBRACKET RBRACKET 
+               | INT LBRACKET RBRACKET 
+               ;
+
+bloque_codigo ::= LBLOCK lista_sentencias RBLOCK
+                | LBLOCK RBLOCK
+                ;
+
+lista_sentencias ::= sentencia lista_sentencias
+                   | sentencia
+                   ;
+
+sentencia ::= sentencia_var
+            | error END_STMT
+            ;
+
+
+sentencia_var ::= VAL tipo_dato ID END_STMT
+                | VAL tipo_dato ID ASSIGN expresion END_STMT
+                ;
+
+
+expresion ::= NUM_INT
+            | NUM_FLOAT
+            | STRING_LITERAL
+            | CHAR_LITERAL
+            | ID
+            | TRUE
+            | FALSE
+            ;
