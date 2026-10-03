@@ -4,18 +4,17 @@ import java_cup.runtime.*;
 
 parser code {:
     public void syntax_error(Symbol s) {
-        System.err.println("Error Sintactico: Simbolo inesperado '" + s.value + 
-                           "' en la linea " + s.left + ", columna " + s.right);
+        System.err.println("Error Sintáctico: Símbolo inesperado '" + s.value + 
+                           "' en la línea " + s.left + ", columna " + s.right);
     }
 
     public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
-        System.err.println("Error Fatal: No se pudo recuperar del error sintactico " +
-                           "cerca de la linea " + s.left + ", columna " + s.right);
+        System.err.println("Error Fatal: No se pudo recuperar del error sintáctico " +
+                           "cerca de la línea " + s.left + ", columna " + s.right);
     }
 :}
 
-/* Declaracion de Terminales */
-
+/* Terminales */
 terminal VOID, MAIN, INT, FLOAT, BOOLEAN, CHAR, STRING, VAL;
 terminal IF, ELIF, ELSE, WHILE, FOR, RETURN, BREAK, READ, WRITE;
 terminal TRUE, FALSE, MOD, POT;
@@ -23,6 +22,7 @@ terminal TRUE, FALSE, MOD, POT;
 terminal LPAREN, RPAREN, LBLOCK, RBLOCK, LBRACKET, RBRACKET;
 terminal COLON, R_ARRAY_IDX, SEMICOLON, COMMA;
 terminal ASSIGN, END_STMT;
+terminal L_ARRAY_INIT, R_ARRAY_INIT; 
 
 terminal PLUS, MINUS, MULT, DIV, INT_DIV, INC, DEC;
 terminal LT, LTE, GT, GTE, EQ, NEQ;
@@ -32,78 +32,168 @@ terminal String ID, STRING_LITERAL, CHAR_LITERAL;
 terminal Integer NUM_INT;
 terminal Float NUM_FLOAT;
 
-/* Declaracion de No Terminales */
-
-non terminal programa, elementos_globales, elemento_global, funcion_main;
+/* No Terminales */
+non terminal programa, lista_elementos_globales, elemento_global, funcion_main;
 non terminal bloque_codigo, lista_sentencias, sentencia;
 non terminal sentencia_var, tipo_dato, tipo_arreglo;
-non terminal expresion;
+non terminal declaracion_funcion, lista_parametros;
+non terminal sentencia_asignacion, funcion_io, llamada_funcion, lista_expresiones;
 
-/* Precedencia y Asociatividad */
+non terminal expresion, expr_relacional, expr_aritmetica, expr_termino, expr_factor;
+non terminal expr_unitario, valor;
 
-precedence left OR;
-precedence left AND;
-precedence left EQ, NEQ;
-precedence left LT, LTE, GT, GTE;
-precedence left PLUS, MINUS;
-precedence left MULT, DIV, INT_DIV, MOD;
-precedence right POT;
-precedence right NOT, INC, DEC; 
+non terminal estructura_if, lista_elif, bloque_else;
+non terminal estructura_while, estructura_for, sentencia_for_init, sentencia_for_step;
 
-/* Gramatica */
+/* ==========================================================
+   Reglas de Producción
+   ========================================================== */
 start with programa;
 
-programa ::= elementos_globales funcion_main
-           | funcion_main
-           ;
+programa ::= lista_elementos_globales ;
 
-elementos_globales ::= elemento_global elementos_globales
-                     | elemento_global
-                     ;
+// Recursividad por la izquierda para listas
+lista_elementos_globales ::= lista_elementos_globales elemento_global
+                           | elemento_global
+                           ;
 
 elemento_global ::= sentencia_var
-                  | error END_STMT
+                  | declaracion_funcion
+                  | funcion_main
+                  | error END_STMT 
                   ;
 
-funcion_main ::= VOID MAIN LPAREN RPAREN bloque_codigo
-               ;
+funcion_main ::= VOID MAIN LPAREN RPAREN bloque_codigo ;
 
-
-tipo_dato ::= INT 
-            | FLOAT 
-            | BOOLEAN 
-            | CHAR 
-            | STRING 
-            | tipo_arreglo 
-            ;
-
-tipo_arreglo ::= FLOAT LBRACKET RBRACKET 
-               | INT LBRACKET RBRACKET 
-               ;
+tipo_dato ::= INT | FLOAT | BOOLEAN | CHAR | STRING | tipo_arreglo ;
+tipo_arreglo ::= FLOAT LBRACKET RBRACKET | INT LBRACKET RBRACKET ;
 
 bloque_codigo ::= LBLOCK lista_sentencias RBLOCK
                 | LBLOCK RBLOCK
                 ;
 
-lista_sentencias ::= sentencia lista_sentencias
+lista_sentencias ::= lista_sentencias sentencia
                    | sentencia
                    ;
 
 sentencia ::= sentencia_var
-            | error END_STMT
+            | sentencia_asignacion
+            | estructura_if
+            | estructura_while
+            | estructura_for
+            | RETURN expresion END_STMT
+            | RETURN END_STMT
+            | BREAK END_STMT
+            | llamada_funcion END_STMT
+            | funcion_io END_STMT
+            | error END_STMT 
             ;
 
+declaracion_funcion ::= tipo_dato ID LPAREN lista_parametros RPAREN bloque_codigo
+                      | tipo_dato ID LPAREN RPAREN bloque_codigo
+                      | VOID ID LPAREN lista_parametros RPAREN bloque_codigo
+                      | VOID ID LPAREN RPAREN bloque_codigo
+                      ;
+
+lista_parametros ::= lista_parametros COMMA tipo_dato ID
+                   | tipo_dato ID
+                   ;
 
 sentencia_var ::= VAL tipo_dato ID END_STMT
                 | VAL tipo_dato ID ASSIGN expresion END_STMT
+                | VAL tipo_dato ID ASSIGN L_ARRAY_INIT lista_expresiones R_ARRAY_INIT END_STMT
                 ;
 
+sentencia_asignacion ::= ID ASSIGN expresion END_STMT
+                       | ID COLON expresion R_ARRAY_IDX ASSIGN expresion END_STMT
+                       ;
 
-expresion ::= NUM_INT
-            | NUM_FLOAT
-            | STRING_LITERAL
-            | CHAR_LITERAL
-            | ID
-            | TRUE
-            | FALSE
+funcion_io ::= READ LPAREN ID RPAREN
+             | WRITE LPAREN expresion RPAREN
+             ;
+
+llamada_funcion ::= ID LPAREN lista_expresiones RPAREN
+                  | ID LPAREN RPAREN
+                  ;
+
+lista_expresiones ::= lista_expresiones COMMA expresion
+                    | expresion
+                    ;
+
+/* ==========================================================
+   Expresiones 
+   ========================================================== */
+expresion ::= LPAREN expresion RPAREN AND LPAREN expresion RPAREN
+            | LPAREN expresion RPAREN OR LPAREN expresion RPAREN
+            | NOT LPAREN expresion RPAREN
+            | expr_relacional
             ;
+
+expr_relacional ::= LBRACKET expresion RBRACKET EQ LBRACKET expresion RBRACKET
+                  | LBRACKET expresion RBRACKET NEQ LBRACKET expresion RBRACKET
+                  | LBRACKET expresion RBRACKET LT LBRACKET expresion RBRACKET
+                  | LBRACKET expresion RBRACKET LTE LBRACKET expresion RBRACKET
+                  | LBRACKET expresion RBRACKET GT LBRACKET expresion RBRACKET
+                  | LBRACKET expresion RBRACKET GTE LBRACKET expresion RBRACKET
+                  | expr_aritmetica
+                  ;
+
+expr_aritmetica ::= expr_aritmetica PLUS expr_termino
+                  | expr_aritmetica MINUS expr_termino
+                  | expr_termino
+                  ;
+
+expr_termino ::= expr_termino MULT expr_factor
+               | expr_termino DIV expr_factor
+               | expr_termino INT_DIV expr_factor
+               | expr_termino MOD expr_factor
+               | expr_factor
+               ;
+
+expr_factor ::= expr_unitario POT expr_factor
+              | expr_unitario
+              ;
+
+expr_unitario ::= MINUS valor
+                | ID INC
+                | ID DEC
+                | valor
+                ;
+
+valor ::= ID
+        | NUM_INT
+        | NUM_FLOAT
+        | STRING_LITERAL
+        | CHAR_LITERAL
+        | TRUE
+        | FALSE
+        | llamada_funcion
+        | ID COLON expresion R_ARRAY_IDX
+        | LPAREN expresion RPAREN
+        ;
+
+/* ==========================================================
+   Estructuras de Control
+   ========================================================== */
+estructura_if ::= IF LPAREN expresion RPAREN bloque_codigo lista_elif ;
+
+lista_elif ::= ELIF LPAREN expresion RPAREN bloque_codigo lista_elif
+             | bloque_else
+             ;
+
+bloque_else ::= ELSE bloque_codigo
+              | /* vacio */
+              ;
+
+estructura_while ::= WHILE LPAREN expresion RPAREN bloque_codigo ;
+
+estructura_for ::= FOR LPAREN sentencia_for_init SEMICOLON expresion SEMICOLON sentencia_for_step RPAREN bloque_codigo ;
+
+sentencia_for_init ::= VAL tipo_dato ID ASSIGN expresion
+                     | ID ASSIGN expresion
+                     ;
+
+sentencia_for_step ::= ID ASSIGN expresion
+                     | ID INC
+                     | ID DEC
+                     ;

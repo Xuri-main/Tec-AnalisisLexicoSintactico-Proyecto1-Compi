@@ -6,7 +6,7 @@ import java.io.IOException;
 
 %%
 
-// Opciones y declaraciones JFlex
+// Opciones y declaraciones de JFlex
 %class Lexer
 %unicode
 %cup
@@ -15,7 +15,7 @@ import java.io.IOException;
 %public
 
 %{
-    //crear tokens  para CUP
+    // Método auxiliar para crear tokens (Symbols) para CUP
     private Symbol symbol(int type) {
         return new Symbol(type, yyline + 1, yycolumn + 1);
     }
@@ -24,10 +24,11 @@ import java.io.IOException;
         return new Symbol(type, yyline + 1, yycolumn + 1, value);
     }
     
-    //errores lexicos
+    // Método para escribir errores léxicos
     private void reportarErrorLexico(String lexema) {
-        System.err.println("Error Lexico: Caracter no reconocido '" + lexema + 
-                           "' en la linea " + (yyline + 1) + ", columna " + (yycolumn + 1));
+        System.err.println("Error Léxico: Carácter no reconocido '" + lexema + 
+                           "' en la línea " + (yyline + 1) + ", columna " + (yycolumn + 1));
+
     }
 %}
 
@@ -40,15 +41,19 @@ Letra          = [a-zA-Z]
 Digito         = [0-9]
 Identificador  = {Letra} ({Letra} | {Digito})*
 NumeroEntero   = {Digito}+
-NumeroFlotante = {NumeroEntero} \. {NumeroEntero}
+DecimalValido  = "0" | ({Digito}* [1-9])
+NumeroFlotante = {NumeroEntero} \. {DecimalValido}
+
+
 
 /* Comentarios */
 ComentarioLinea = "\"\"" {InputCharacter}* "\"\""
 ComentarioMulti = "¡" [^]* "y!"
 
-/* Literales para texto */
-CadenaTexto    = \\ [^\\]* \\
+/* Literales de texto */
+CadenaTexto    = \" [^\"]* \"
 Caracter       = ' [^'] '
+
 
 %%
 
@@ -58,7 +63,7 @@ Caracter       = ' [^'] '
     {ComentarioLinea}  { /* ignorar */ }
     {ComentarioMulti}  { /* ignorar */ }
 
-    /* Palabras reservadas */
+    /* Palabras Reservadas */
     "void"             { return symbol(sym.VOID); }
     "main"             { return symbol(sym.MAIN); }
     "int"              { return symbol(sym.INT); }
@@ -81,11 +86,13 @@ Caracter       = ' [^'] '
     "mod"              { return symbol(sym.MOD); }
     "pot"              { return symbol(sym.POT); }
 
-    /* Delimitadores y simbolos de agrupacion */
+    /* Delimitadores y Símbolos de Agrupación */
     "∈:"               { return symbol(sym.LPAREN); }
     "y:∋"              { return symbol(sym.RPAREN); }
     "¿y:"              { return symbol(sym.LBLOCK); }
     ":?"               { return symbol(sym.RBLOCK); }
+    "¿:"               { return symbol(sym.L_ARRAY_INIT); }
+    "y:?"              { return symbol(sym.R_ARRAY_INIT); }
     "["                { return symbol(sym.LBRACKET); }
     "]"                { return symbol(sym.RBRACKET); }
     ":"                { return symbol(sym.COLON); }
@@ -93,11 +100,11 @@ Caracter       = ' [^'] '
     ";"                { return symbol(sym.SEMICOLON); }
     ","                { return symbol(sym.COMMA); }
 
-    /* Operadores de asignacion y finalizacion */
+    /* Operadores de Asignación y Finalización */
     "⊢"                { return symbol(sym.ASSIGN); }
     ">>"               { return symbol(sym.END_STMT); }
 
-    /* Operadores aritmeticos */
+    /* Operadores Aritméticos */
     "+"                { return symbol(sym.PLUS); }
     "-"                { return symbol(sym.MINUS); }
     "*"                { return symbol(sym.MULT); }
@@ -106,7 +113,7 @@ Caracter       = ' [^'] '
     "++"               { return symbol(sym.INC); }
     "--"               { return symbol(sym.DEC); }
 
-    /* Operadores relacionales */
+    /* Operadores Relacionales */
     "<"                { return symbol(sym.LT); }
     "<="               { return symbol(sym.LTE); }
     ">"                { return symbol(sym.GT); }
@@ -114,12 +121,12 @@ Caracter       = ' [^'] '
     "=="               { return symbol(sym.EQ); }
     "!="               { return symbol(sym.NEQ); }
 
-    /* Operadores logicos */
+    /* Operadores Lógicos */
     "λ"                { return symbol(sym.AND); }
     "O"                { return symbol(sym.OR); }
     "Σ"                { return symbol(sym.NOT); }
 
-    /* Identificadores y literales */
+    /* Identificadores y Literales */
     {Identificador}    { return symbol(sym.ID, yytext()); }
     {NumeroEntero}     { return symbol(sym.NUM_INT, Integer.parseInt(yytext())); }
     {NumeroFlotante}   { return symbol(sym.NUM_FLOAT, Float.parseFloat(yytext())); }
