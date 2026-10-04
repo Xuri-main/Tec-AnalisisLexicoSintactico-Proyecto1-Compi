@@ -1,0 +1,7 @@
+Nombre del curso: Compiladores e Interpretes [IC-5701]
+Número de semestre y año lectivo: II Semestre, 2026
+Nombres y carnet de los Estudiantes: Emilio Funes R.     - 2018216713 
+                                     Ginger Rodriguez G. - 2022035672
+Número de proyecto programado: 1
+Fecha de entrega: 03/10/2026
+Estatus de la entrega: Excelente
