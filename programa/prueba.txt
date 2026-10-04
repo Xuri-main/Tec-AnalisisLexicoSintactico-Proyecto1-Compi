@@ -1,0 +1,14 @@
+val int x ⊢ 10 >>
+val float precio 99.50 >>
+
+void main ∈: y:∋ ¿y:
+    ¡ Este es un comentario
+      de multiples lineas y!
+      
+    val int y ⊢ 5 >>
+    
+    "" Comentario de una linea ""
+    if ∈: [ x ] > [ y ] y:∋ ¿y:
+        write ∈: "x es mayor" y:∋ >>
+    :?
+:?

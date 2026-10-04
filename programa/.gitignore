@@ -1,0 +1,10 @@
+# Archivos compilados de Java
+*.class
+
+# Temporales de JFlex
+*~
+
+# Resultados de ejecucion
+salida_tokens.txt
+
+*.zip
