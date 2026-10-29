@@ -39,7 +39,7 @@ WhiteSpace     = {LineTerminator} | [ \t\f]
 
 Letra          = [a-zA-Z]
 Digito         = [0-9]
-Identificador  = {Letra} ({Letra} | {Digito})*
+Identificador  = ({Letra} | "_") ({Letra} | {Digito} | "_")*
 NumeroEntero   = {Digito}+
 DecimalValido  = "0" | ({Digito}* [1-9])
 NumeroFlotante = {NumeroEntero} \. {DecimalValido}
@@ -47,8 +47,8 @@ NumeroFlotante = {NumeroEntero} \. {DecimalValido}
 
 
 /* Comentarios */
-ComentarioLinea = "\"\"" {InputCharacter}* "\"\""
-ComentarioMulti = "¡" [^]* "y!"
+ComentarioLinea = "|" {InputCharacter}*
+ComentarioMulti = "¡" [^!]* "!"
 
 /* Literales de texto */
 CadenaTexto    = \" [^\"]* \"
@@ -87,22 +87,22 @@ Caracter       = ' [^'] '
     "pot"              { return symbol(sym.POT); }
 
     /* Delimitadores y Símbolos de Agrupación */
-    "∈:"               { return symbol(sym.LPAREN); }
-    "y:∋"              { return symbol(sym.RPAREN); }
-    "¿y:"              { return symbol(sym.LBLOCK); }
+    "є:"               { return symbol(sym.LPAREN); }
+    ":э"              { return symbol(sym.RPAREN); }
+    "¿:"              { return symbol(sym.LBLOCK); }
     ":?"               { return symbol(sym.RBLOCK); }
     "¿:"               { return symbol(sym.L_ARRAY_INIT); }
-    "y:?"              { return symbol(sym.R_ARRAY_INIT); }
-    "["                { return symbol(sym.LBRACKET); }
-    "]"                { return symbol(sym.RBRACKET); }
+    ":?"              { return symbol(sym.R_ARRAY_INIT); }
+    "ʃ:"                { return symbol(sym.LBRACKET); }
+    ":ʅ"                { return symbol(sym.RBRACKET); }
     ":"                { return symbol(sym.COLON); }
     "y:Ƨ"              { return symbol(sym.R_ARRAY_IDX); }
     ";"                { return symbol(sym.SEMICOLON); }
     ","                { return symbol(sym.COMMA); }
 
     /* Operadores de Asignación y Finalización */
-    "⊢"                { return symbol(sym.ASSIGN); }
-    ">>"               { return symbol(sym.END_STMT); }
+    "Ͱ"                { return symbol(sym.ASSIGN); }
+    "»"               { return symbol(sym.END_STMT); }
 
     /* Operadores Aritméticos */
     "+"                { return symbol(sym.PLUS); }
@@ -123,7 +123,7 @@ Caracter       = ' [^'] '
 
     /* Operadores Lógicos */
     "λ"                { return symbol(sym.AND); }
-    "O"                { return symbol(sym.OR); }
+    "θ"                { return symbol(sym.OR); }
     "Σ"                { return symbol(sym.NOT); }
 
     /* Identificadores y Literales */
